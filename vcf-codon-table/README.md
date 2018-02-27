@@ -9,6 +9,6 @@ The script generates a filtered list of mutations in tabular form, giving the co
 Sample usage:
 ```
 ./vcf_parser --help
-./vcf_parser.py AF176034.fasta phix_coord.txt 40snps.vcf output.txt
+./vcf_parser.py AF176034.fasta phix_coord.txt 40snps.vcf output.tsv
 ```
 Another script (gbk_vcf_parser.py) is in development. The intention is to use Genbank inputs via [biopython](http://biopython.org/DIST/docs/tutorial/Tutorial.html) and [cyvcf2](http://brentp.github.io/cyvcf2/). Please feel free to fix this script - it isn't built yet...
