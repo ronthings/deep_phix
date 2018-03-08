@@ -19,7 +19,7 @@ OK, I have decided to drop sickle - it doesn't appear to be maintained but [cuta
 
 Illumina adapter sequences are [linked here](https://support.illumina.com/bulletins/2016/12/what-sequences-do-i-use-for-adapter-trimming.html) (the link therein to the detailed adapter sequences document is broken - [here's a copy](http://www.ag.unr.edu/genomics/documents/Illumina_Adapter_Sequences.pdf)) and [explained diagrammatically here](https://support.illumina.com/bulletins/2016/04/adapter-trimming-why-are-adapter-sequences-trimmed-from-only-the--ends-of-reads.html). However the diagram in the second link appears to be inaccurate with respect to the oritentation of the index 1 read. I have drawn my own diagram to clarify:
 
-![Image](../master/resources/adapters.jpg?raw=true)
+![Image](../master/adapters.jpg?raw=true)
 
 It looks common to take the first 12 nucleotides from the CTGTCTCTTATA[CACATCT] sequence provided by Illumina for Nextera and Nextera XT. This corresponds to the (identical) reverse complement of the 3' end of the read 1 and read 2 primers. Trim galore chooses a very aggressive overlap of 1 base with the adapter before 3' trimming - that would trim 1/4 reads on average (those ending C). I am going with cutadapt's default of 3 nucleotides (we can rely on read placement bias filter to deal with errors caused by ends of reads later). I have increased the stringency by allowing up to a maximum of 2 mismatches (for 10 or more nts of adapter). This goes down to 1 mismatch from 5-9 nts and to 0 mismatches below 4 nts based on these calculations:
 
