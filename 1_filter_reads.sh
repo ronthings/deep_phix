@@ -45,15 +45,15 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do # i from zero to one minus length of ar
   id="${fwdrds%%_*}" # greedy remove _ from right e.g. "A"
 
   # cutadapt processes PE reads simultaneously
-  # first: adaptive filter against Q30 (5' trim), and against Q30 (3' trim)
-  # default is quality-base=33 (http://drive5.com/usearch/manual/quality_score.html)
-  # second: 3' (a/A) adapter search, a (forward) & A (reverse) (-A important to avoid legacy mode)
-  # error-rate 0.1*12=1 mismatch allowed, min overlap length = 3 nts
+  # first: end filter against Q30 (5' trim), and against Q30 (3' trim), default encoding
+  # second: 3' (a/A) adapter search, a (forward) & A (reverse: important to avoid legacy mode)
+  # error-rate=0.2 (default=0.1), this mean {0,1,2} mismatches for {0-4,5-9,11-12} of adapter match,
+  # min overlap length = 3 nts (=default) and would have to be perfect given error rate
   # third: trim Ns
-  # forth: discard read pairs in which at least one member is <20 nts
+  # forth: discard both reads in pair (compulsory) if at least one read (default) is <20 nts
   # write files to TRIM directory
-  cutadapt --quality-cutoff 30,30 \
-  -a ${adapter} -A ${adapter} --error-rate=0.1 --overlap=3 \
+  cutadapt --quality-base=33 --quality-cutoff 30,30 \
+  -a ${adapter} -A ${adapter} --error-rate=0.2 --overlap=3 \
   --trim-n --pair-filter=any --minimum-length=20 --cores=$NUMCPUS \
   -o TRIM/${id}_filtered_R1.fastq.gz -p TRIM/${id}_filtered_R2.fastq.gz \
   FASTQ/${fwdrds} FASTQ/${rvsrds}
