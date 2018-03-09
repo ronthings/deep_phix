@@ -10,6 +10,17 @@ Script Name | Purpose
 3_map_reference.sh | map FASTQ to bacterial genome + ΦX174, filter to MAPQ>=20, convert to SAM, concatenate and index
 4_call_snps.sh | freebayes call SNPs (naïve mode), filter against biases (vcffilter), tabulate (vcf2tsv from vcflib)
 
+## Notes on setup
+This is how I set up a conda environment with the required software and stored its config:
+```
+conda create -n phix cutadapt bwa samtools bedtools freebayes vcflib
+conda env export -n phix > environment.yml
+```
+You can copy this exact environment using the YAML file in this repo as follows:
+```
+conda env create -f environment.yml
+```
+
 ## Notes on Script 1
 Programs to consider:
 * [Sickle](https://github.com/najoshi/sickle)
