@@ -15,8 +15,7 @@ EOF
 let NUMCPUS=$(sysctl -n hw.ncpu)
 # let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)-1
 
-# adapter sequence for Nextera and Nextera XT: CTGTCTCTTATA[CACATCT]
-# this is reverse complement of last 19 nt in read 1 and read 2 primers
+# adapter sequence for Nextera (XT)
 adapter="CTGTCTCTTATA"
 
 # make the required output directories
@@ -44,18 +43,10 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do # i from zero to one minus length of ar
   rvsrds="${reads2[$i]}" # e.g. "A_S1_L001_R2_001.fastq.gz"
   id="${fwdrds%%_*}" # greedy remove _ from right e.g. "A"
 
-  # cutadapt processes PE reads simultaneously
-  # first: end filter against Q30 (5' trim), and against Q30 (3' trim), default encoding
-  # second: 3' (a/A) adapter search, a (forward) & A (reverse: important to avoid legacy mode)
-  # error-rate=0.2 (default=0.1), this mean {0,1,2} mismatches for {0-4,5-9,11-12} of adapter match,
-  # min overlap length = 3 nts (=default) and would have to be perfect given error rate
-  # third: trim Ns
-  # forth: discard both reads in pair (compulsory) if at least one read (default) is <20 nts
-  # write files to TRIM directory
   cutadapt --quality-base=33 --quality-cutoff 30,30 \
   -a ${adapter} -A ${adapter} --error-rate=0.2 --overlap=3 \
   --trim-n --pair-filter=any --minimum-length=20 --cores=$NUMCPUS \
-  -o TRIM/${id}_filtered_R1.fastq.gz -p TRIM/${id}_filtered_R2.fastq.gz \
+  -o TRIM/${id}_trimmed_R1.fastq.gz -p TRIM/${id}_trimmed_R2.fastq.gz \
   FASTQ/${fwdrds} FASTQ/${rvsrds}
 
 done

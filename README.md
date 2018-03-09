@@ -59,7 +59,7 @@ Multiplication | Equals | Rounded down
 0.2*5 | 1.0 | 1
 0.2*4 | 0.8 | 0
 
-This allows a maximum of 2 mismatches (for >=10 adapter nts). This goes down to 1 mismatch (5-9 nts) and 0 mismatches (<4 nts). If a read ends with the bases CTG exactly, they will be removed.
+This allows a maximum of 2 mismatches (for >=10 adapter nts). This goes down to 1 mismatch (5-9 nts) and 0 mismatches (<=4 nts). If a read ends with the bases CTG exactly, they will be removed.
 
 ### Discarding Ns and rejecting reads1
 ```
@@ -69,7 +69,7 @@ We remove Ns from reads and discard both reads in pair (compulsory) if at least 
 
 ### Outputs and inputs
 ```
--o TRIM/${id}_filtered_R1.fastq.gz -p TRIM/${id}_filtered_R2.fastq.gz \
+-o TRIM/${id}_trimmed_R1.fastq.gz -p TRIM/${id}_trimmed_R2.fastq.gz \
 FASTQ/${fwdrds} FASTQ/${rvsrds}
 ```
 The paired end outputs are specified with ```-o``` and ```-p``` and written to the TRIM directory while forward and reverse input files are separate (not interleaved) and obtained from the FASTQ directory.
