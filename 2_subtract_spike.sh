@@ -32,6 +32,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   id="${fwdrds%%_*}" # greedy remove _* from right e.g. "A"
 
   # mapping PE reads, can I make these map in a single-end mode??
+  bwa index FASTA/pUC18_L09136.fasta
   bwa mem -t 4 FASTA/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_greedymapped_PE.sam
 
   # select UNMAPPED reads (f=flag present, 4=unmapped), sort by read name (-n, because we need to emit paired end files next) and cleanup
