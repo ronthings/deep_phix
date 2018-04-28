@@ -96,7 +96,8 @@ FASTQ/${fwdrds} FASTQ/${rvsrds}
 The paired end outputs are specified with ```-o``` and ```-p``` and written to the TRIM directory while forward and reverse input files are separate (not interleaved) and obtained from the FASTQ directory.
 
 ## Notes on Script 2
-To develop
+The second script maps the trimmed reads against the spike-in reference genome.
+It does this twice - the first time against the linear genome, the second time, against a resected version of the same.
 
 ## Future Plans
 * Build yaml dependency file for conda - cutadapt is on conda.

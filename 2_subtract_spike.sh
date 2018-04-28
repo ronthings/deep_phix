@@ -31,7 +31,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   rvsrds="${reads2[$i]}" # e.g. "A_trimmed_R2.fastq.gz"
   id="${fwdrds%%_*}" # greedy remove _* from right e.g. "A"
 
-  # mapping PE reads, can I make these map in a single-end mode??
+  # mapping PE reads to the linear spike-in genome (edge effects expected)
   bwa index FASTA/pUC18_L09136.fasta
   bwa mem -t 4 FASTA/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_greedymapped_PE.sam
 
@@ -40,10 +40,23 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
   rm TMP/${id}_greedymapped_PE.sam # remove SAM
 
-  # convert PE BAM files to FASTQ (for PE singletons are by bedtools, which is conservative), cleanup
+  # convert PE BAM files to FASTQ (for PE singletons are discarded by bedtools, which is conservative), cleanup
+  bedtools bamtofastq -i TMP/${id}_unmapped_PE.bam -fq TMP/${id}_protomapped_R1.fastq -fq2 TMP/${id}_protomapped_R2.fastq
+  rm TMP/${id}_unmapped_*.bam # remove BAMs
+
+  # mapping PE reads to resected spike-in genome
+  bwa index FASTA/pUC18_L09136_resected.fasta
+  bwa mem -t 4 FASTA/pUC18_L09136_resected.fasta TMP/${id}_protomapped_R1.fastq TMP/${id}_protomapped_R2.fastq > TMP/${id}_greedymapped_PE.sam
+
+  # select UNMAPPED reads, sort by read name and cleanup (as above)
+  samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
+  rm TMP/${id}_greedymapped_PE.sam # remove SAM
+
+  # convert PE BAM files to FASTQ and cleanup
   bedtools bamtofastq -i TMP/${id}_unmapped_PE.bam -fq TRIM/${id}_unmapped_R1.fastq -fq2 TRIM/${id}_unmapped_R2.fastq
   rm TMP/${id}_unmapped_*.bam # remove BAMs
-  gzip TRIM/${id}_unmapped_*.fastq # zip FASTQs for space
+  gzip -f TRIM/${id}_unmapped_*.fastq # zip FASTQs for space (-f forces deletion of original)
+
 done
 
 echo [`date +"%Y-%m-%d %H:%M:%S"`] "#> DONE."
