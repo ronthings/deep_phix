@@ -12,8 +12,8 @@ EOF
 }
 
 # determine how many CPUs on the current machine
-let NUMCPUS=$(sysctl -n hw.ncpu)
-# let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)-1
+#  let NUMCPUS=$(sysctl -n hw.ncpu)
+let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)
 
 # adapter sequence for Nextera (XT)
 adapter="CTGTCTCTTATA"

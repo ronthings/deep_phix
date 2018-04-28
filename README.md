@@ -12,6 +12,16 @@ Script Name | Purpose
 
 ## Notes on setup
 This is how I set up a conda environment with the required software and stored its config:
+
+First go get Miniconda if you don't have conda on the system - here is the example for a linux machine:
+```
+curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+chmod 755 Miniconda3-latest-Linux-x86_64.sh
+./Miniconda3-latest-Linux-x86_64.sh
+sudo ln -s /home/ubuntu/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+conda update -n base conda
+```
+
 ```
 conda create -n phix cutadapt bwa samtools bedtools freebayes vcflib
 conda env export -n phix > environment.yml
