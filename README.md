@@ -95,14 +95,44 @@ FASTQ/${fwdrds} FASTQ/${rvsrds}
 ```
 The paired end outputs are specified with ```-o``` and ```-p``` and written to the TRIM directory while forward and reverse input files are separate (not interleaved) and obtained from the FASTQ directory.
 
-## Notes on Script 2
-The second script maps the trimmed reads against the spike-in reference genome.
-It does this twice - the first time against the linear genome, the second time, against a resected version of the same.
+## Notes on 2_subtract_spike.sh
+The second script maps against the spike-in in five steps:
+ a. map trimmed reads against spike-in and store mapped as BAM
+ b. also selects unmapped reads and converts back to FASTQ (discarding singletons)
+ c. map trimmed reads against "resected" spike-in and store mapped reads
+ d. map unmapped reads from b against "resected" spike-in, select unmapped reads again and convert -> unmapped FASTQ
 
-## Future Plans
-* Build yaml dependency file for conda - cutadapt is on conda.
-* Check later - for VCFfilter:
-https://www.biostars.org/p/110670/
+## Notes on 3_map_reference.sh
+The third script maps the unmapped FASTQ against reference which includes bacterium and phix
+ a. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_
+ b. maps against reference and stores mapped reads as indexed BAM (also subsets for phix)
+ c. subsets output of b for phiX and uses FreeBayes in naive mode to create -> unfiltered VCF
+ d. maps also against reference with resected phix
+ e. stores only the phix subset from this and uses FreeBayes as above to create -> unfiltered VCF (resected)
+
+## Notes on 4_call_snps.sh
+This script is incomplete but contains command line for VCFfilter from vcflib, for creating filtered VCFs.
+
+## Next steps (for Oye's pipeline)
+1. re-index the resected VCFs
+2. splice from them to repair the ends of the main VCFs
+3. apply vcffilter to create -> filtered VCFs
+4. select UNION of all positive sites in filtered VCFs
+5. examine UNION list in original, unfiltered VCFs (to avoid false negatives)
+
+## For Alex's pipeline
+1. I think #1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
+2. adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division
+3. apply the same workflow exactly as Oye's pipeline (#1-5), viz. re-index and splice VCFs, apply filters, and step back to the unfiltered VCFs.
+
+## Setup so far
+I am separate VMs (B'ham for Oye, W'wick for Alex) for these pipelines which are pulling from my git repo to fetch scripts and references. The environment (meaning all software used) is defined by a conda YAML file. Data is already copied to drives. I've tested so far using Oye's VM running for two samples only.
+
+## URL Dump
+* [CLIMB](https://bryn.climb.ac.uk)
+* [VCFfilter question](https://www.biostars.org/p/110670/)
+* [Read Groups Readme (at GATK)](https://software.broadinstitute.org/gatk/documentation/article.php?id=6472)
+* [Command line git manual](https://schacon.github.io/git/user-manual.html#sharing-development)
 
 ## To check later:
 * [Video python data science stack](https://youtu.be/EBgUiuFXE3E)
