@@ -13,6 +13,10 @@ This script assumes the existence of FASTA/, TMP/ and TRIM/ folders.
 EOF
 }
 
+# determine how many CPUs on the current machine
+#  let NUMCPUS=$(sysctl -n hw.ncpu)
+let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)
+
 # variables to be used in main loop
 reads1=(TRIM/*_trimmed_R1.fastq.gz) # collect each forward read in array, e.g. "TRIM/A_trimmed_R1.fastq.gz"
 reads1=("${reads1[@]##*/}") # [@] refers to array, greedy remove */ from left, e.g. "A_trimmed_R1.fastq.gz"
@@ -33,7 +37,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # mapping PE reads to the linear spike-in genome (edge effects expected)
   bwa index FASTA/pUC18_L09136.fasta
-  bwa mem -t 4 FASTA/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_greedymapped_PE.sam
+  bwa mem -t $NUMCPUS FASTA/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_greedymapped_PE.sam
 
   # select UNMAPPED reads (f=flag present, 4=unmapped), sort by read name (-n, because we need to emit paired end files next) and cleanup
   # explanation: | is pipe and - is reference to intermediate output)
@@ -46,7 +50,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # mapping PE reads to resected spike-in genome
   bwa index FASTA/pUC18_L09136_resected.fasta
-  bwa mem -t 4 FASTA/pUC18_L09136_resected.fasta TMP/${id}_protomapped_R1.fastq TMP/${id}_protomapped_R2.fastq > TMP/${id}_greedymapped_PE.sam
+  bwa mem -t $NUMCPUS FASTA/pUC18_L09136_resected.fasta TMP/${id}_protomapped_R1.fastq TMP/${id}_protomapped_R2.fastq > TMP/${id}_greedymapped_PE.sam
 
   # select UNMAPPED reads, sort by read name and cleanup (as above)
   samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
