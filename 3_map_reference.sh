@@ -19,10 +19,9 @@ if [ ! -d "MAP" ] ; then
 fi
 
 # variables to be used in main loop
-reads1=(TRIM/*_unmapped_R1.fastq.gz) # collect each forward read in array, e.g. "TRIM/A_unmapped_R1.fastq.gz"
+reads1=(UMP/*_unmapped_R1.fastq.gz) # collect each forward read in array, e.g. "TRIM/A_unmapped_R1.fastq.gz"
 reads1=("${reads1[@]##*/}") # [@] refers to array, greedy remove */ from left, e.g. "A_unmapped_R1.fastq.gz"
 reads2=("${reads1[@]/_R1/_R2}") # substitute R2 for R1, e.g. "A_unmapped_R2.fastq.gz"
-readsS=("${reads1[@]/_R1/_SE}") # substitute SE for R1, e.g. "A_unmapped_SE.fastq.gz"
 
 # location for log file
 LOGFILE=./map.log
@@ -37,25 +36,19 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   rvsrds="${reads2[$i]}" # e.g. "A_unmapped_R2.fastq.gz"
   id="${fwdrds%%_*}" # greedy remove _* from right e.g. "A"
 
-  # mapping (unmapped) reads against (concatenated) host and phix genomes
+  # map (unmapped) reads against (concatenated) host and phix genomes
   # -R = adding read group ID/sample to header
-  bwa mem -t 4 -R '@RG\tID:Oye\tSM:'"$id" FASTA/reference.fasta TRIM/${readsS[$i]} > TMP/${id}_refmapped_SE.sam
-  bwa mem -t 4 -R '@RG\tID:Oye\tSM:'"$id" FASTA/reference.fasta TRIM/${reads1[$i]} TRIM/${reads2[$i]} > TMP/${id}_refmapped_PE.sam
+  bwa mem -t ${NUMCPUS} -R '@RG\tID:Oye\tSM:'"$id" FASTA/reference.fasta UMP/${reads1[$i]} UMP/${reads2[$i]} > TMP/${id}_refmapped.sam
 
-  # convert SAMs to BAMs, filtering for mapped reads with MAPQ>=20 (1 in 100) and cleanup
-  samtools view -bS -F 4 -q 20 -o TMP/${id}_refmapped_SE.bam TMP/${id}_refmapped_SE.sam
-  samtools view -bS -F 4 -q 20 -o TMP/${id}_refmapped_PE.bam TMP/${id}_refmapped_PE.sam
-  rm TMP/${id}_refmapped_*.sam # remove SAMs
-
-  # concatenate SE and PE BAMs and then pipe to sort by ref position (=default, don't use -n option)
-  samtools cat TMP/${id}_refmapped_SE.bam TMP/${id}_refmapped_PE.bam | samtools sort -@ 3 -o MAP/${id}_refmapped_merged.bam -
-  rm TMP/${id}_refmapped_*.bam # remove unmerged BAMs - can use wildcard (*) because output > other directory
+  # SAM>BAM, filter for mapped reads and MAPQ>=20 (1 in 100), pipe to sort by ref position (=default, don't use -n option); cleanup
+  samtools view -bS -F 4 -q 20 TMP/${id}_refmapped.sam | samtools sort -@ 3 -o MAP/${id}_refmapped.bam -
+  rm TMP/${id}_refmapped.sam # delete SAM
 
   # index
-  samtools index MAP/${id}_refmapped_merged.bam
+  samtools index MAP/${id}_refmapped.bam
 
   # select only those reads mapping to phix and index again
-  samtools view -b MAP/${id}_refmapped_merged.bam AF176034.1 -o MAP/${id}_phixmapped.bam
+  samtools view -b MAP/${id}_refmapped.bam AF176034.1 -o MAP/${id}_phixmapped.bam
   samtools index MAP/${id}_phixmapped.bam
 done
 
