@@ -49,18 +49,18 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   rm TMP/${id}_unmapped_*.bam # remove BAMs
 
   # mapping PE reads to resected spike-in genome
-  bwa index FASTA/pUC18_L09136_resected.fasta
-  bwa mem -t $NUMCPUS FASTA/pUC18_L09136_resected.fasta TMP/${id}_protomapped_R1.fastq TMP/${id}_protomapped_R2.fastq > TMP/${id}_greedymapped_PE.sam
-  rm TMP/${id}_protomapped_*.fastq # remove intermediate FASTQs
+  #bwa index FASTA/pUC18_L09136_resected.fasta
+  #bwa mem -t $NUMCPUS FASTA/pUC18_L09136_resected.fasta TMP/${id}_protomapped_R1.fastq TMP/${id}_protomapped_R2.fastq > TMP/${id}_greedymapped_PE.sam
+  #rm TMP/${id}_protomapped_*.fastq # remove intermediate FASTQs
 
   # select UNMAPPED reads, sort by read name and cleanup (as above)
-  samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
-  rm TMP/${id}_greedymapped_PE.sam # remove SAM
+  #samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
+  #rm TMP/${id}_greedymapped_PE.sam # remove SAM
 
   # convert PE BAM files to FASTQ and cleanup
-  bedtools bamtofastq -i TMP/${id}_unmapped_PE.bam -fq TRIM/${id}_unmapped_R1.fastq -fq2 TRIM/${id}_unmapped_R2.fastq
-  rm TMP/${id}_unmapped_*.bam # remove BAMs
-  gzip -f TRIM/${id}_unmapped_*.fastq # zip FASTQs for space (-f forces deletion of original)
+  #bedtools bamtofastq -i TMP/${id}_unmapped_PE.bam -fq TRIM/${id}_unmapped_R1.fastq -fq2 TRIM/${id}_unmapped_R2.fastq
+  #rm TMP/${id}_unmapped_*.bam # remove BAMs
+  #gzip -f TRIM/${id}_unmapped_*.fastq # zip FASTQs for space (-f forces deletion of original)
 
 done
 
