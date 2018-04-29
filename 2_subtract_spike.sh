@@ -31,35 +31,44 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   rvsrds="${reads2[$i]}" # e.g. "A_trimmed_R2.fastq.gz"
   id="${fwdrds%%_*}" # greedy remove _* from right e.g. "A"
 
-  ## MAP TO MAIN GENOME
-  # map PE reads to the linear spike-in genome (edge effects expected) and send to TMP/
+  ## 1. MAP {TRIMMED READS} TO MAIN GENOME
+  # map reads to the linear spike-in genome (edge effects expected) and send to TMP/
   bwa mem -t ${NUMCPUS} ${FASTALOC}/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_tmpspike_1.sam
 
-  # select MAPPED reads (F=flag absent, 4=unmapped), send to SPK/ and delete full file from TMP/
-  samtools view -O SAM -F 4 -o SPK/${id}_spikemapped_1.sam TMP/${id}_tmpspike_1.sam
-  rm TMP/${id}_tmpspike_*.sam # delete temporary SAM
+  # select MAPPED reads (F=flag absent, 4=unmapped), send to SPK/ for later
+  samtools view -O BAM -F 4 -o SPK/${id}_spikemapped_1.bam TMP/${id}_tmpspike_1.sam
 
-  # create filter list (stored in TMP) of mapped reads to remove
-  grep -v "^@" SPK/${id}_spikemapped_1.sam | cut -f1 | sort -n | uniq > TMP/${id}_removelist.txt
+  # select UNMAPPED reads (f=flag present, 4=unmapped), sort by read name and keep BAM in TMP/
+  samtools view -O SAM -h -f 4 TMP/${id}_tmpspike_1.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_1.bam -
 
-  ## MAP TO RESECTED GENOME
-  # map PE reads to resected spike-in genome
+  # convert unmapped BAM files to FASTQ (for PE singletons are discarded by bedtools, which is conservative)
+  bedtools bamtofastq -i TMP/${id}_unmapped_1.bam -fq TMP/${id}_unmapped_R1.fastq -fq2 TMP/${id}_unmapped_R2.fastq
+
+  # delete unmapped BAM and temporary SAM (so we only have unmapped FASTQ in TMP/)
+  rm TMP/${id}_unmapped_1.bam
+  rm TMP/${id}_tmpspike_*.sam
+
+  ## 2. MAP {TRIMMED READS} TO RESECTED GENOME (this is for later analysis of spike-in genome)
+  # map trimmed reads to resected spike-in genome
   bwa mem -t ${NUMCPUS} ${FASTALOC}/pUC18_L09136_resected.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_tmpspike_2.sam
 
-  # select MAPPED reads (F=flag absent, 4=unmapped), send to SPK/
-  samtools view -O SAM -F 4 -o SPK/${id}_spikemapped_2.sam TMP/${id}_tmpspike_2.sam
-  # don't delete temporary SAM yet!
+  # select MAPPED reads (F=flag absent, 4=unmapped), send to SPK/ for later, and delete temporary SAM
+  samtools view -O BAM -F 4 -o SPK/${id}_spikemapped_2.bam TMP/${id}_tmpspike_2.sam
+  rm TMP/${id}_tmpspike_*.sam
+
+  ## 3. MAP {UNMAPPED READS in TMP/} TO RESECTED GENOME (this is for maximal accuracy in subtracting spike-in reads)
+  # map unmapped reads to resected spike-in genome
+  bwa mem -t ${NUMCPUS} ${FASTALOC}/pUC18_L09136_resected.fasta TMP/${id}_unmapped_R1.fastq TMP/${id}_unmapped_R2.fastq > TMP/${id}_tmpspike_3.sam
 
   # select UNMAPPED reads (f=flag present, 4=unmapped), use grep -v to remove MAPPED reads from filter list, sort by read name and cleanup
-  samtools view -O SAM -h -f 4 TMP/${id}_tmpspike_2.sam | grep -vf TMP/${id}_removelist.txt | samtools sort -O BAM -n -o TMP/${id}_unmapped.bam -
+  samtools view -O SAM -h -f 4 TMP/${id}_tmpspike_3.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_2.bam -
   rm TMP/${id}_tmpspike_*.sam # delete temporary SAM
-  rm TMP/${id}_removelist.txt # delete remove list
 
-  # convert unmapped BAM files to FASTQ (for PE singletons are discarded by bedtools, which is conservative), cleanup
-  bedtools bamtofastq -i TMP/${id}_unmapped.bam -fq UMP/${id}_unmapped_R1.fastq -fq2 UMP/${id}_unmapped_R2.fastq
-  rm TMP/${id}_unmapped.bam # remove BAMs
+  # convert unmapped BAM files to FASTQ, send to UMP/ and cleanup
+  bedtools bamtofastq -i TMP/${id}_unmapped_2.bam -fq UMP/${id}_unmapped_R1.fastq -fq2 UMP/${id}_unmapped_R2.fastq
+  rm TMP/${id}_unmapped_2.bam # remove BAM
 
-  # compress FASTQ files
+  # compress FASTQ files in UMP/
   gzip -f UMP/${id}_unmapped_*.fastq # zip FASTQs for space (-f forces deletion of original)
 
 done
@@ -68,3 +77,10 @@ echo [`date +"%Y-%m-%d %H:%M:%S"`] "#> DONE."
 } #pipeline end
 
 pipeline 2>&1 | tee $LOGFILE
+
+
+## dead darlings (grep is too slow)
+# create filter list (stored in TMP) of mapped reads to remove
+#grep -v "^@" SPK/${id}_spikemapped_1.sam | cut -f1 | sort -n | uniq > TMP/${id}_removelist.txt
+# select UNMAPPED reads (f=flag present, 4=unmapped), use grep -v to remove MAPPED reads from filter list, sort by read name and cleanup
+#samtools view -O SAM -h -f 4 TMP/${id}_tmpspike_2.sam | grep -vf TMP/${id}_removelist.txt | samtools sort -O BAM -n -o
