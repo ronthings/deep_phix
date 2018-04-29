@@ -18,8 +18,11 @@ let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)
 # adapter sequence for Nextera (XT)
 adapter="CTGTCTCTTATA"
 
+# FASTA: file containing reference genomes; FASTQ: file containing FASTQ reads
+# SPK: spike mapped files; TMP: temporary files; TRIM: trimmed reads; UMP: unmapped reads
+
 # make the required output directories
-for d in "TMP" "TRIM" ; do
+for d in "SPK" "TMP" "TRIM" "UMP" ; do
   if [ ! -d $d ] ; then
     mkdir $d
   fi
