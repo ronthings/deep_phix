@@ -42,7 +42,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # select UNMAPPED reads (f=flag present, 4=unmapped), sort by read name (-n, because we need to emit paired end files next) and cleanup
   # explanation: | is pipe and - is reference to intermediate output)
   samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
-  rm TMP/${id}_greedymapped_PE.sam # remove SAM
+  #rm TMP/${id}_greedymapped_PE.sam # remove SAM
 
   # convert PE BAM files to FASTQ (for PE singletons are discarded by bedtools, which is conservative), cleanup
   bedtools bamtofastq -i TMP/${id}_unmapped_PE.bam -fq TMP/${id}_protomapped_R1.fastq -fq2 TMP/${id}_protomapped_R2.fastq
@@ -51,6 +51,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # mapping PE reads to resected spike-in genome
   bwa index FASTA/pUC18_L09136_resected.fasta
   bwa mem -t $NUMCPUS FASTA/pUC18_L09136_resected.fasta TMP/${id}_protomapped_R1.fastq TMP/${id}_protomapped_R2.fastq > TMP/${id}_greedymapped_PE.sam
+  rm TMP/${id}_protomapped_*.fastq # remove intermediate FASTQs
 
   # select UNMAPPED reads, sort by read name and cleanup (as above)
   samtools view -O SAM -h -f 4 TMP/${id}_greedymapped_PE.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_PE.bam -
