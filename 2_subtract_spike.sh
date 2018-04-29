@@ -60,6 +60,9 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # map unmapped reads to resected spike-in genome
   bwa mem -t ${NUMCPUS} ${FASTALOC}/pUC18_L09136_resected.fasta TMP/${id}_unmapped_R1.fastq TMP/${id}_unmapped_R2.fastq > TMP/${id}_tmpspike_3.sam
 
+  # remove input FASTQs
+  rm TMP/${id}_unmapped_*.fastq
+
   # select UNMAPPED reads (f=flag present, 4=unmapped), use grep -v to remove MAPPED reads from filter list, sort by read name and cleanup
   samtools view -O SAM -h -f 4 TMP/${id}_tmpspike_3.sam | samtools sort -O BAM -n -o TMP/${id}_unmapped_2.bam -
   rm TMP/${id}_tmpspike_*.sam # delete temporary SAM

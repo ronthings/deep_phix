@@ -33,7 +33,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # choose a reference genome
   echo ${id} processing...
-  ref = $(
+  let ref=$(
   awk -F, -v id=$id '
    $1 == id {
          if ( $2 == "C" ) print "EC_reference"
