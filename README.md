@@ -96,19 +96,19 @@ FASTQ/${fwdrds} FASTQ/${rvsrds}
 The paired end outputs are specified with ```-o``` and ```-p``` and written to the TRIM directory while forward and reverse input files are separate (not interleaved) and obtained from the FASTQ directory.
 
 ## Notes on 2_subtract_spike.sh
-The second script maps against the spike-in in five steps:
- a. map trimmed reads against spike-in and store mapped as BAM
- b. also selects unmapped reads and converts back to FASTQ (discarding singletons)
- c. map trimmed reads against "resected" spike-in and store mapped reads
- d. map unmapped reads from b against "resected" spike-in, select unmapped reads again and convert -> unmapped FASTQ
+The second script maps against the spike-in in four steps:
+1. map trimmed reads against spike-in and store mapped as BAM
+2. also selects unmapped reads and converts back to FASTQ (discarding singletons)
+3. map trimmed reads against "resected" spike-in and store mapped reads
+4. map unmapped reads from #2 against "resected" spike-in, select unmapped reads again and convert -> unmapped FASTQ
 
 ## Notes on 3_map_reference.sh
-The third script maps the unmapped FASTQ against reference which includes bacterium and phix
- a. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_
- b. maps against reference and stores mapped reads as indexed BAM (also subsets for phix)
- c. subsets output of b for phiX and uses FreeBayes in naive mode to create -> unfiltered VCF
- d. maps also against reference with resected phix
- e. stores only the phix subset from this and uses FreeBayes as above to create -> unfiltered VCF (resected)
+The third script maps the unmapped FASTQ against reference which includes bacterium and phiX174
+1. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_ (using ref_decoder.csv)
+2. maps against reference and stores mapped reads as indexed BAM (also subsets for phiX)
+3. subsets output of b for phiX and uses FreeBayes in naive mode to create -> unfiltered VCF
+4. maps also against reference with resected phiX
+5. stores only the phiX subset from this and uses FreeBayes as above to create -> unfiltered VCF (resected)
 
 ## Notes on 4_call_snps.sh
 This script is incomplete but contains command line for VCFfilter from vcflib, for creating filtered VCFs.
