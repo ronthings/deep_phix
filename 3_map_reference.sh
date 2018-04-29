@@ -13,6 +13,10 @@ This script assumes the existence of FASTA/, TMP/ and TRIM/ folders.
 EOF
 }
 
+# determine how many CPUs on the current machine
+#  let NUMCPUS=$(sysctl -n hw.ncpu)
+let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)
+
 # create the MAP directory if it doesn't exist
 if [ ! -d "MAP" ] ; then
   mkdir MAP
