@@ -5,36 +5,24 @@ usage() {
   cat <<EOF
 Usage:
   ${NAME}
-The script assumes a FASTQ/ folder exists and is populated with FASTQ files.
-It will create the TMP/ and TRIM/ folders if they do not already exist.
+It is important that you run "0_config_file.sh" first!
 
 EOF
 }
 
-# determine how many CPUs on the current machine
-#  let NUMCPUS=$(sysctl -n hw.ncpu)
-let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)
+# load config script
+source ./0_config_file.sh
+
+# location for log file
+LOGFILE=./filter.log
 
 # adapter sequence for Nextera (XT)
 adapter="CTGTCTCTTATA"
 
-# FASTA: file containing reference genomes; FASTQ: file containing FASTQ reads
-# SPK: spike mapped files; TMP: temporary files; TRIM: trimmed reads; UMP: unmapped reads
-
-# make the required output directories
-for d in "SPK" "TMP" "TRIM" "UMP" ; do
-  if [ ! -d $d ] ; then
-    mkdir $d
-  fi
-done
-
 # variables to be used in main loop
-reads1=(FASTQ/*R1*.fastq.gz) # collect each forward read in array, e.g. "FASTQ/A_S1_L001_R1_001.fastq.gz"
+reads1=(${FASTQLOC}/*R1*.fastq.gz) # collect each forward read in array, e.g. "~/FASTQ/A_S1_L001_R1_001.fastq.gz"
 reads1=("${reads1[@]##*/}") # [@] refers to array, greedy remove */ from left, e.g. "A_S1_L001_R1_001.fastq.gz"
 reads2=("${reads1[@]/_R1/_R2}") # substitute R2 for R1, e.g. "A_S1_L001_R2_001.fastq.gz"
-
-# location for log file
-LOGFILE=./filter.log
 
 # main loop
 pipeline() {
@@ -50,7 +38,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do # i from zero to one minus length of ar
   -a ${adapter} -A ${adapter} --error-rate=0.2 --overlap=3 \
   --trim-n --pair-filter=any --minimum-length=20 --cores=$NUMCPUS \
   -o TRIM/${id}_trimmed_R1.fastq.gz -p TRIM/${id}_trimmed_R2.fastq.gz \
-  FASTQ/${fwdrds} FASTQ/${rvsrds}
+  ${FASTQLOC}/${fwdrds} ${FASTQLOC}/${rvsrds}
 
 done
 

@@ -6,24 +6,20 @@ usage() {
 Usage:
   ${NAME}
 It is important that you run "1_filter_reads.sh" first!
-This script assumes the existence of FASTA/, TMP/ and TRIM/ folders.
-- TRIM/ should contain trimmed FASTQ
-- FASTA/ should contain the plasmid reference genome
 
 EOF
 }
 
-# determine how many CPUs on the current machine
-#  let NUMCPUS=$(sysctl -n hw.ncpu)
-let NUMCPUS=$(cat /proc/cpuinfo | grep processor | wc -l)
+# load config script
+source ./0_config_file.sh
+
+# location for log file
+LOGFILE=./subspike.log
 
 # variables to be used in main loop
 reads1=(TRIM/*_trimmed_R1.fastq.gz) # collect each forward read in array, e.g. "TRIM/A_trimmed_R1.fastq.gz"
 reads1=("${reads1[@]##*/}") # [@] refers to array, greedy remove */ from left, e.g. "A_trimmed_R1.fastq.gz"
 reads2=("${reads1[@]/_R1/_R2}") # substitute R2 for R1, e.g. "A_trimmed_R2.fastq.gz"
-
-# location for log file
-LOGFILE=./subspike.log
 
 # main loop
 pipeline() {
@@ -37,8 +33,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   ## MAP TO MAIN GENOME
   # map PE reads to the linear spike-in genome (edge effects expected) and send to TMP/
-  bwa index FASTA/pUC18_L09136.fasta
-  bwa mem -t ${NUMCPUS} FASTA/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_tmpspike_1.sam
+  bwa mem -t ${NUMCPUS} ${FASTALOC}/pUC18_L09136.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_tmpspike_1.sam
 
   # select MAPPED reads (F=flag absent, 4=unmapped), send to SPK/ and delete full file from TMP/
   samtools view -O SAM -F 4 -o SPK/${id}_spikemapped_1.sam TMP/${id}_tmpspike_1.sam
@@ -49,8 +44,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   ## MAP TO RESECTED GENOME
   # map PE reads to resected spike-in genome
-  bwa index FASTA/pUC18_L09136_resected.fasta
-  bwa mem -t ${NUMCPUS} FASTA/pUC18_L09136_resected.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_tmpspike_2.sam
+  bwa mem -t ${NUMCPUS} ${FASTALOC}/pUC18_L09136_resected.fasta TRIM/${fwdrds} TRIM/${rvsrds} > TMP/${id}_tmpspike_2.sam
 
   # select MAPPED reads (F=flag absent, 4=unmapped), send to SPK/
   samtools view -O SAM -F 4 -o SPK/${id}_spikemapped_2.sam TMP/${id}_tmpspike_2.sam
