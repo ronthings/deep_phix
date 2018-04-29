@@ -39,7 +39,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # map (unmapped) reads against (concatenated) host and phix genomes
   # -R = adding read group ID/sample to header
   bwa index FASTA/reference.fasta
-  bwa mem -t ${NUMCPUS} -R '@RG\tID:Oye\tSM:'"$id" FASTA/reference.fasta UMP/${reads1[$i]} UMP/${reads2[$i]} > TMP/${id}_refmapped.sam
+  bwa mem -t ${NUMCPUS} -R '@RG\tID:Oye\tSM:'"$id" FASTA/reference.fasta UMP/${fwdrds} UMP/${rvsrds} > TMP/${id}_refmapped.sam
 
   # SAM>BAM, filter for mapped reads and MAPQ>=20 (1 in 100), pipe to sort by ref position (=default, don't use -n option); cleanup
   samtools view -bS -F 4 -q 20 TMP/${id}_refmapped.sam | samtools sort -@ 3 -o MAP/${id}_refmapped.bam -
