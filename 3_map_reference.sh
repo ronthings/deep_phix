@@ -41,7 +41,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   ## MAP TO MAIN GENOME
   # map (unmapped) reads against (concatenated) host and phix genomes
   # -R = adding read group ID/sample to header
-  bwa mem -t ${NUMCPUS} -R '@RG\tID:HSTSWTCH\tSMPL:'"$id" ${FASTALOC}/${ref}.fasta UMP/${fwdrds} UMP/${rvsrds} > TMP/${id}_refmapped_1.sam
+  bwa mem -t ${NUMCPUS} -R '@RG\tID:HSTSWTCH\tSM:'"$id" ${FASTALOC}/${ref}.fasta UMP/${fwdrds} UMP/${rvsrds} > TMP/${id}_refmapped_1.sam
 
   # SAM>BAM, filter for mapped reads and MAPQ>=20 (1 in 100), pipe to sort by ref position (=default, don't use -n option); cleanup
   samtools view -bS -F 4 -q 20 TMP/${id}_refmapped_1.sam | samtools sort -@ 3 -o MAP/${id}_refmapped_1.bam -
@@ -62,7 +62,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   ## MAP TO RESECTED GENOME
   # map (unmapped) reads against (concatenated) host and RESECTED phix genomes
-  bwa mem -t ${NUMCPUS} -R '@RG\tID:HSTSWTCH\tSMPL:'"$id" ${FASTALOC}/${ref}_resected.fasta UMP/${fwdrds} UMP/${rvsrds} > TMP/${id}_refmapped_2.sam
+  bwa mem -t ${NUMCPUS} -R '@RG\tID:HSTSWTCH\tSM:'"$id" ${FASTALOC}/${ref}_resected.fasta UMP/${fwdrds} UMP/${rvsrds} > TMP/${id}_refmapped_2.sam
 
   # SAM>BAM with filter and sort - but push to BAM to TMP (because we won't keep this one)
   samtools view -bS -F 4 -q 20 TMP/${id}_refmapped_2.sam | samtools sort -@ 3 -o TMP/${id}_refmapped_2.bam -
