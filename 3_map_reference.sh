@@ -34,7 +34,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # choose a reference genome
   echo ${id} processing...
   ref=$(
-  awk -F"," -v id=$id '$1 == id { print $3 }' ref_decoder.csv
+  awk -F"," -v id=$id '$1 == id { print $3 }' ${FASTALOC}/ref_decoder.csv
   )
   echo ${ref} selected as reference
 
