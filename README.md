@@ -137,7 +137,7 @@ Exclude indels, multi-nucleotide events (must try without this) and complex even
 --no-indels --no-mnps --no-complex
 ```
 
-Consider -@ option for script 4. to re-run...
+Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in order to restore alleles skipped in some samples.
 
 ## Notes on 4_call_snps.sh
 This script is incomplete but contains command line for VCFfilter from vcflib, for creating filtered VCFs.
