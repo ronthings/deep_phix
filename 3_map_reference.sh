@@ -69,7 +69,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   rm TMP/${id}_refmapped_*.sam # delete SAM
 
   # let's index
-  #samtools index TMP/${id}_refmapped_2.bam
+  samtools index TMP/${id}_refmapped_2.bam
 
   # fetch BAM from TMP and select only those reads mapping to resected phix, index again and cleanup
   samtools view -b TMP/${id}_refmapped_2.bam RESTART_2694_RESECTED_AF176034.1 -o MAP/${id}_phixmapped_2.bam
