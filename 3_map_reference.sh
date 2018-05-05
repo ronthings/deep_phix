@@ -56,7 +56,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # naive variant call - should try version preserving indels
   freebayes --fasta-reference ${FASTALOC}/${ref}.fasta --pooled-continuous \
-  --min-alternate-fraction 0 --min-alternate-count 1 \
+  --min-alternate-fraction 0.01 --min-alternate-count 1 \
   --min-mapping-quality 20 --min-base-quality 30 \
   --no-indels --no-mnps --no-complex MAP/${id}_phixmapped_1.bam > VCF/${id}_phix_1.vcf
 
@@ -75,7 +75,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # naive variant call
   freebayes --fasta-reference ${FASTALOC}/${ref}_resected.fasta --pooled-continuous \
-  --min-alternate-fraction 0 --min-alternate-count 1 \
+  --min-alternate-fraction 0.01 --min-alternate-count 1 \
   --min-mapping-quality 20 --min-base-quality 30 \
   --no-indels --no-mnps --no-complex MAP/${id}_phixmapped_2.bam > VCF/${id}_phix_2.vcf
 

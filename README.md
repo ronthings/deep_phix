@@ -122,9 +122,9 @@ Next up, we look for all variants that pass threshold (unknown number of genome 
 --pooled-continuous
 ```
 
-Now, we allow even a single read different from reference to support a variant (filtering comes later):
+Now, we allow even a single read different from reference to support a variant (filtering comes later), although we also specify that no fewer than 1% of the reads should support an alternative allele (this results in significant speedup - will use -@ later to handle false negatives):
 ```
---min-alternate-fraction 0 --min-alternate-count 1
+--min-alternate-fraction 0.01 --min-alternate-count 1
 ```
 
 Apply some filters on base and mapping qualities:
