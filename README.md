@@ -110,6 +110,35 @@ The third script maps the unmapped FASTQ against reference which includes bacter
 4. maps also against reference with resected phiX
 5. stores only the phiX subset from this and uses FreeBayes as above to create -> unfiltered VCF (resected)
 
+Let's explore the freebayes command line options:
+
+The following is used to refer to the reference genome (either regular or resected):
+```
+--fasta-reference
+```
+
+Next up, we look for all variants that pass threshold (unknown number of genome copies):
+```
+--pooled-continuous
+```
+
+Now, we allow even a single read different from reference to support a variant (filtering comes later):
+```
+--min-alternate-fraction 0 --min-alternate-count 1
+```
+
+Apply some filters on base and mapping qualities:
+```
+--min-mapping-quality 20 --min-base-quality 30
+```
+
+Exclude indels, multi-nucleotide events (must try without this) and complex events:
+```
+--no-indels --no-mnps --no-complex
+```
+
+Consider -@ option for script 4. to re-run...
+
 ## Notes on 4_call_snps.sh
 This script is incomplete but contains command line for VCFfilter from vcflib, for creating filtered VCFs.
 
