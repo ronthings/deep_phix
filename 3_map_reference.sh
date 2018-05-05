@@ -47,7 +47,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   samtools view -bS -F 4 -q 20 TMP/${id}_refmapped_1.sam | samtools sort -@ 3 -o MAP/${id}_refmapped_1.bam -
   rm TMP/${id}_refmapped_*.sam # delete SAM
 
-  # this one's for keepers so let's index
+  # let's index
   samtools index MAP/${id}_refmapped_1.bam
 
   # select only those reads mapping to phix and index again
@@ -68,10 +68,13 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   samtools view -bS -F 4 -q 20 TMP/${id}_refmapped_2.sam | samtools sort -@ 3 -o TMP/${id}_refmapped_2.bam -
   rm TMP/${id}_refmapped_*.sam # delete SAM
 
+  # let's index
+  #samtools index TMP/${id}_refmapped_2.bam
+
   # fetch BAM from TMP and select only those reads mapping to resected phix, index again and cleanup
-  samtools view -b TMP/${id}_refmapped_2.bam AF176034.1 -o MAP/${id}_phixmapped_2.bam
+  samtools view -b TMP/${id}_refmapped_2.bam RESTART_2694_RESECTED_AF176034.1 -o MAP/${id}_phixmapped_2.bam
   samtools index MAP/${id}_phixmapped_2.bam
-  rm TMP/${id}_refmapped_*.bam # remove BAM
+  rm TMP/${id}_refmapped_*.* # remove BAM
 
   # naive variant call
   freebayes --fasta-reference ${FASTALOC}/${ref}_resected.fasta --pooled-continuous \
