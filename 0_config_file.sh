@@ -26,5 +26,5 @@ bwa index ${FASTALOC}/pUC18_L09136.fasta
 bwa index ${FASTALOC}/pUC18_L09136_resected.fasta
 bwa index ${FASTALOC}/EC_reference.fasta
 bwa index ${FASTALOC}/EC_reference_resected.fasta
-bwa index ${FASTALOC}/ST_reference_FAKE.fasta
-bwa index ${FASTALOC}/ST_reference_FAKE_resected.fasta
+bwa index ${FASTALOC}/ST_reference_FIRSTPASS.fasta
+bwa index ${FASTALOC}/ST_reference_FIRSTPASS_resected.fasta
