@@ -21,7 +21,7 @@ if __name__ == "__main__":
             else:
                 genome += line
 
-    # analyse for repeats
+    # resect the genome
     with open(genome_name + '_resected.fasta', 'w') as outfile:
         length = math.ceil(len(genome)/2)
         newseq = genome[length:] + genome[:length]

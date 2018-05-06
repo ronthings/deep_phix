@@ -14,7 +14,7 @@ if __name__ == "__main__":
     vcf_out = VariantFile(vcf_name+'_reindexed.vcf', 'w', header=vcf_in.header)
 
     # resect coord
-    print list((vcf_in.header.contigs))
+    print(list((vcf_in.header.contigs)))
     coord = 2694 # 1-based
     glen = 5386
 
@@ -23,4 +23,5 @@ if __name__ == "__main__":
         rec.pos += (coord-1) # so 1 becomes 2694
         if rec.pos > glen:
             rec.pos -= glen # so 5387 becomes 1
-        print(rec, file=vcf_out)
+        vcf_out.write(rec)
+        #print(rec, file=vcf_out)

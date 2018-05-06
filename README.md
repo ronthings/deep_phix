@@ -23,7 +23,7 @@ conda update -n base conda
 ```
 
 ```
-conda create -n phix cutadapt bwa samtools bedtools freebayes vcflib
+conda create -n phix cutadapt bwa samtools bedtools freebayes vcflib pysam
 conda env export -n phix > environment.yml
 ```
 You can copy this exact environment using the YAML file in this repo as follows:
@@ -139,15 +139,22 @@ Exclude indels, multi-nucleotide events (must try without this) and complex even
 
 Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in order to restore alleles skipped in some samples.
 
+## Now added (in python_scripts folder)!
+Now added:
+* 2_recount_resected.py: re-writes VCF file coordinates - to be used of SAMPLE_phix_2.vcf (idiot check - sites identical with SAMPLE_phix_1.vcf)
+* 3_fuse_vcfs.py: merges vcfs - to be used on SAMPLE_phix_1.vcf (and will find reindexed version from above) - adds sites that are missing in original file and if both files have a site, chooses the entry with greater coverage. Interestingly pysam appears to re-label reference depending on header.
+
+See pipeline.txt in the folder to see sample usage (room for improvement in labelling).
+
 ## Notes on 4_call_snps.sh
 This script is incomplete but contains command line for VCFfilter from vcflib, for creating filtered VCFs.
 
 ## Next steps (for Oye's pipeline)
-1. re-index the resected VCFs
-2. splice from them to repair the ends of the main VCFs
+1. re-index the resected VCFs -- DONE
+2. splice from them to repair the ends of the main VCFs -- DONE - but just looked for greater coverage
 3. apply vcffilter to create -> filtered VCFs
 4. select UNION of all positive sites in filtered VCFs
-5. examine UNION list in original, unfiltered VCFs (to avoid false negatives)
+5. examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
 
 ## For Alex's pipeline
 1. I think #1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
