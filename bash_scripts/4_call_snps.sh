@@ -59,11 +59,14 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # merge VCFs and select data with highest coverage
   python python_scripts/3_fuse_vcfs.py VCF/${id}_phix_1.vcf # will create ${id}_phix_merged.vcf
 
+  # create table with genome-level data (based on phix_coord; echo statement is passing default ARF character to script)
+  echo "*" | python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_merged.vcf VCF/${id}_phix_unfiltered_table.tsv
+
   # filter against various biases using vcflib's vcffilter
   vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30" VCF/${id}_phix_merged.vcf > VCF/${id}_phix_filtered.vcf
 
   # create table with genome-level data (based on phix_coord)
-  python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_filtered.vcf VCF/${id}_phix_table.tsv
+  echo "*" | python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_filtered.vcf VCF/${id}_phix_filtered_table.tsv
 
 done
 

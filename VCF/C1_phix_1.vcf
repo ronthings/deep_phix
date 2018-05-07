@@ -1,11 +1,11 @@
 ##fileformat=VCFv4.2
-##fileDate=20180505
+##fileDate=20180507
 ##source=freeBayes v1.1.0-4-gb6041c6
-##reference=/media/deepdata/HostSwitch/FASTA/EC_reference.fasta
+##reference=/media/deepdata/HostSwitch/FASTA/phix_AF176034.fasta
 ##contig=<ID=1,length=4575910>
 ##contig=<ID=AF176034.1,length=5386>
 ##phasing=none
-##commandline="freebayes --fasta-reference /media/deepdata/HostSwitch/FASTA/EC_reference.fasta --pooled-continuous --min-alternate-fraction 0.01 --min-alternate-count 1 --min-mapping-quality 20 --min-base-quality 30 --no-indels --no-mnps --no-complex MAP/C1_phixmapped_1.bam"
+##commandline="freebayes --fasta-reference /media/deepdata/HostSwitch/FASTA/phix_AF176034.fasta --pooled-continuous --min-alternate-fraction 0.01 --min-alternate-count 1 --min-mapping-quality 20 --min-base-quality 30 --no-indels --no-mnps --no-complex MAP/C1_phixmapped_1.bam"
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus">
 ##INFO=<ID=DPB,Number=1,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
