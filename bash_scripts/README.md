@@ -1,22 +1,25 @@
-# Notes on FreeBayes and tabulation (here for consideration in case)
+# Notes on FreeBayes and tabulation
 
-## The key FreeBayes command:
+## The key FreeBayes command
+```
 freebayes --fasta-reference FASTA/reference.fasta --pooled-continuous \
 --min-alternate-fraction 0.01 --min-alternate-count 1 \
 --min-mapping-quality 20 --min-base-quality 30 \
 --no-indels --no-mnps --no-complex MAP/A_phixmapped.bam > VCF/A_phix.vcf
+```
 
 ## Notes
 * I notice that FreeBayes itself left aligns indels by default.
 * Why do some folks use pooled discrete with ploidy=1 ?
 
-## The key vcffilter command (better to do this as a discrete step and we can use a program from vcflib):
+## The key vcffilter command
 ```
 conda install vcflib # if not already installed
 vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30" VCF/A_phix.vcf > VCF/A_phix_filtered.vcf
 ```
 
 ## Notes
+* It's better to do this as a discrete step and we can use a program from vcflib
 * This filter is quite stringent. For example 1460 was rejected for placement bias but it looks pretty solid on IGV.
 * Paradoxically, the false negative rate may be increased by high coverage...
 
