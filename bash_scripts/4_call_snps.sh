@@ -37,7 +37,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   #awk -F"," -v id=$id '$1 == id { print $3 }' ${FASTALOC}/ref_decoder.csv
   #)
   #echo ${ref} selected as reference
-  ref=${id}
+  ref=phix_AF176034
 
   ## PILEUP AGAINST MAIN GENOME
   # naive variant call - should try version preserving indels
