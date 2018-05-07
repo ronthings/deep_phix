@@ -1,62 +1,54 @@
 # Preparation of FASTA Reference Sequences
 
-Full genome of phage starts at line 3 in _E. coli_ reference, e.g.
+## Data Source (Bacterial Genomes)
+Bacterial genome files are generated via Unicycler hybrid assemblies of Illumina (MiSeq) and ONT MinION data. Two oddities must be noted:
+
+1. The _E. coli_ reference includes the ΦX174 control track. The full genome of ΦX174 starts at line 3 (after the single contig).
 ```
-tail -n +3 ST_reference_FAKE.fasta
+tail -n +3 assembly.fasta > NEB_phix.fasta
+head -2 assembly.fasta > EC_reference.fasta
+```
+Please check on above (and check for identity using diff)...
+
+2. The _S. enterica_ serovar Typhimurium reference contains a plasmid and is still fragmented (owing to fragmentation during ONT prep?)
+
+## Data Source (Short Genomes)
+Viral (ΦX174) and spike-in (pUC18) genomes are obtained from NCBI with accession numbers noted in the name of the file.
+
+## Workflow for Splicing Genomes for Mapping Steps in DeepSeq Pipeline
+First activate a conda environment with python 3.x:
+```
+prompt$ conda activate
 ```
 
-# Starting point
-```
-NHBLAP-MAC01:FASTA bio3dickib$ ls -1
-EC_reference.fasta
-ST_reference_FAKE.fasta
-pUC18_L09136.fasta
-phix_AF176034.fasta
-pipeline.txt
-resect_genome.py
-```
+### Resect Small Genomes
 
-# resect the spike-in genome
+1. pUC18 (spike-in):
 ```
-NHBLAP-MAC01:FASTA bio3dickib$ conda activate
-(base) NHBLAP-MAC01:FASTA bio3dickib$ ./resect_genome.py pUC18_L09136.fasta
+(base) prompt$ ./resect_genome.py pUC18_L09136.fasta
 Genome resected. It now begins at position 1344
 ```
 
-# resect the phiX genome
+2. ΦX174 (viral):
 ```
-(base) NHBLAP-MAC01:FASTA bio3dickib$ ./resect_genome.py phix_AF176034.fasta
+(base) prompt$ ./resect_genome.py phix_AF176034.fasta
 Genome resected. It now begins at position 2694
 ```
 
-# create the resected EC reference by skipping the phiX genome and replacing with resected version
+### Create Resected Bacterial References
+1. Do this by skipping the ΦX174 genome and replacing with resected version
 ```
-(base) NHBLAP-MAC01:FASTA bio3dickib$ head -2 EC_reference.fasta > EC_reference_resected.fasta
-(base) NHBLAP-MAC01:FASTA bio3dickib$ cat phix_AF176034_resected.fasta >> EC_reference_resected.fasta
-```
-# do the same for the ST version
-```
-(base) NHBLAP-MAC01:FASTA bio3dickib$ cat ST_reference_FIRSTPASS.fasta > ST_reference_FIRSTPASS_resected.fasta
-(base) NHBLAP-MAC01:FASTA bio3dickib$ cat phix_AF176034_resected.fasta >> ST_reference_FIRSTPASS_resected.fasta
+(base) prompt$ head -2 EC_reference.fasta > EC_reference_resected.fasta
+(base) prompt$ cat phix_AF176034_resected.fasta >> EC_reference_resected.fasta
 ```
 
-# don't forget to concatenate to ST reference
+2. For the ST genome:
 ```
-(base) NHBLAP-MAC01:FASTA bio3dickib$ cat phix_AF176034.fasta >> ST_reference_FIRSTPASS.fasta
+(base) prompt$ cat ST_reference_FIRSTPASS.fasta > ST_reference_FIRSTPASS_resected.fasta
+(base) prompt$ cat phix_AF176034_resected.fasta >> ST_reference_FIRSTPASS_resected.fasta
 ```
 
-# now we have
+3. Don't forget also to concatenate the standard ΦX174 to the ST reference:
 ```
-(base) NHBLAP-MAC01:FASTA bio3dickib$ ls -1
-EC_reference.fasta
-EC_reference_resected.fasta
-ST_reference_FIRSTPASS.fasta
-ST_reference_FIRSTPASS_resected.fasta
-pUC18_L09136.fasta
-pUC18_L09136_resected.fasta
-phix_AF176034.fasta
-phix_AF176034_resected.fasta
-pipeline.txt
-ref_decoder.csv
-resect_genome.py
+(base) prompt$ cat phix_AF176034.fasta >> ST_reference_FIRSTPASS.fasta
 ```
