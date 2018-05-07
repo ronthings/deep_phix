@@ -138,6 +138,8 @@ The fourth script calls SNPs (currently simple SNPs only) and uses a series of p
 6. apply bias filters using vcffilter to (e.g.) A_phix_merged.vcf
 7. apply vcf_parser.py script to output of step 6 also (to give, e.g., A_phix_filtered_table.tsv)
 
+The vcf_parser.py script can be found (with notes) in the vcf-codon-table/ folder of this repository. Sample outputs, such as [this one](../master/VCF/A_phix_unfiltered_table.tsv), can be found in the VCF/ folder.
+
 ### To Do / Notes
 * I carried out an idiot check on step 3 to see that positions in the 1 and 2 VCF are the same, not shifted (may be some uniques at edge of genome - handled in step 4). More checking may be advisable.
 * I am a little uncertain of the validity of the filters applied in step 6. Are they too strict? See below.
