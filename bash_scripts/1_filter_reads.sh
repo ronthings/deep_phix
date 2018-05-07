@@ -14,7 +14,7 @@ EOF
 source bash_scripts/0_config_file.sh
 
 # location for log file
-LOGFILE=./filter.log
+LOGFILE=./1_filter.log
 
 # adapter sequence for Nextera (XT)
 adapter="CTGTCTCTTATA"

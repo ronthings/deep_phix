@@ -14,7 +14,7 @@ EOF
 source bash_scripts/0_config_file.sh
 
 # location for log file
-LOGFILE=./subspike.log
+LOGFILE=./2_subspike.log
 
 # variables to be used in main loop
 reads1=(TRIM/*_trimmed_R1.fastq.gz) # collect each forward read in array, e.g. "TRIM/A_trimmed_R1.fastq.gz"
