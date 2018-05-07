@@ -27,6 +27,9 @@ Genome resected. It now begins at position 2694
 (base) NHBLAP-MAC01:FASTA bio3dickib$ cat ST_reference_FIRSTPASS.fasta > ST_reference_FIRSTPASS_resected.fasta
 (base) NHBLAP-MAC01:FASTA bio3dickib$ cat phix_AF176034_resected.fasta >> ST_reference_FIRSTPASS_resected.fasta
 
+# don't forget to concatenate to ST reference
+(base) NHBLAP-MAC01:FASTA bio3dickib$ cat phix_AF176034.fasta >> ST_reference_FIRSTPASS.fasta
+
 # now we have
 (base) NHBLAP-MAC01:FASTA bio3dickib$ ls -1
 EC_reference.fasta
