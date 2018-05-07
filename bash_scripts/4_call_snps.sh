@@ -62,5 +62,5 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   # filter against various biases using vcflib's vcffilter
   vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30" VCF/${id}_phix_merged.vcf > VCF/${id}_phix_filtered.vcf
 
-  # Now we are ready:
+  # create table with genome-level data (based on phix_coord)
   python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_filtered.vcf VCF/${id}_phix_table.tsv
