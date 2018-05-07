@@ -1,8 +1,8 @@
 # ΦX174 Deep Sequencing Analysis Pipeline
-This repository contains scripts written by Ben Dickins and used to analyse deep sequencing results from the following work conducted in the Dickins laboratory:
+This repository contains scripts written by Ben Dickins (with command-line and workflow level inputs from co-authors) and used to analyse deep sequencing results from the following studies conducted in the Dickins laboratory:
 
-Abbreviated Title | Working Title of Manuscript | First Author | Key Issues for Analysis
-------------------|-----------------------------|--------------|------------------------
+Short Title | Working Title of Manuscript | First Author | Key Issues for Analysis
+------------|-----------------------------|--------------|------------------------
 Elevated Mutation Rate Study | The effects of elevated mutation rate on evolutionary dynamics in a ssDNA phage | Alex Wilcox | overlapping read pairs, mapping over the origin
 Host Switch Study | Signatures of adaptation to host switching in bacteriophage ΦX174 | Oyeronke Ayansola | subtraction of spike-in from alternate samples, mapping over the origin
 
@@ -182,12 +182,25 @@ Maybe we can stick to EPP, QUAL and DP as, according to [this comment](https://g
 
 ## Next steps (for Host Switching Study)
 1. Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in FreeBayes in order to restore alleles skipped in some samples.
-2. Select UNION of all positive sites in filtered VCFs
-3. Examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
+2. Select UNION of all positive sites in filtered VCFs.
+3. Examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option.
 
 ## Next steps (for Elevated Mutation Rate Study)
-1. Steps 1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
-2. Adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division
+1. Steps 1 and 2 in the existing pipeline can be discarded because they are handled by [PEAR read merger](https://sco.h-its.org/exelixis/web/software/pear/doc.html).
+2. Adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division.
+
+From Alex:
+Table 2.2 of his thesis for NEBNext Ultra II adapters:
+```
+cutadapt fwd_reads.fastq rev_reads.fastq -m 25 -n 2 \ -o fwd_trimmed.fastq -p rev_trimmed.2.fastq \
+-b ADAPTOR1 –b ADAPTOR2 -a PRIMER1 –a PRIMER2 –a PRIMER3
+```
+
+His PEAR command-line input:
+```
+PEAR -f fwd_trimmed.fastq -r rev_trimmed.fastq -n 25 -o merged
+```
+Above discards reads <25 nts in length. Later mapping quality steps will also affect results. What about using -q option in PEAR? Might be also consider using PEAR first (so that small overlaps of real sequence can be resolved) and then a more complex cutadapt trim (removing 5' as well as 3')? I do not want to create too much complexity here, however...
 
 ## Virtual Machine Setup
 I am separate VMs (B'ham for Oye, W'wick for Alex) for these pipelines which are pulling from my git repo to fetch scripts and references. The environment (meaning all software used) is defined by a conda YAML file. Data is already copied to drives. I've tested so far using Oye's VM running for two samples only.
