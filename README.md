@@ -1,14 +1,15 @@
 # Deep sequencing analysis scripts for ΦX174 analysis
 
-This repo contains scripts used to analyse deepseq results from recent experiments in our lab.
+This repository contains scripts used to analyse deep sequencing results from recent experiments in our lab.
 
 ## Summary
 Script Name | Purpose
 ------------|--------
+0_config_and_run.sh | set global variables and run scripts 1-4
 1_filter_reads.sh | quality and adapter trim (cutadapt)
-2_subtract_spike.sh | map against spike-in, filter BAM to keep unmapped reads, convert back to FASTQs
-3_map_reference.sh | map FASTQ to bacterial genome + ΦX174, filter to MAPQ>=20, convert to SAM, concatenate and index
-4_call_snps.sh | freebayes call SNPs (naïve mode), filter against biases (vcffilter), tabulate (vcf2tsv from vcflib)
+2_subtract_spike.sh | map against spike-in (two ways) and convert unmapped reads to FASTQs
+3_map_reference.sh | map FASTQ to bacterial genome + ΦX174, filter to MAPQ>=20, convert to indexed BAM
+4_call_snps.sh | freebayes naïvely call SNPs, merge VCFs over origin (by coverage), anti-bias filter (vcffilter) and tabulate
 
 ## Notes on setup
 This is how I set up a conda environment with the required software and stored its config:
@@ -31,14 +32,21 @@ You can copy this exact environment using the YAML file in this repo as follows:
 conda env create -f environment.yml
 ```
 
-## Notes on Script 1
-Programs to consider:
+## Notes on Script 0 (0_config_and_run.sh)
+This script sets some global variables.
+
+It calculates NUMCPUS = the number of CPUs on the system. This is currently set for Ubuntu, but you swap comment to activate for MacOS. Other variables include the locations of key FASTA and FASTQ files. Please check these carefully before running. The FASTA files are currently contained in this repository, but the FASTQ files will be elsewhere. The FASTA files are then indexed (only needs to happen once) and scripts 1 to 4 are executed (inheriting the variables set here).
+
+## Notes on Script 1 (1_filter_reads.sh)
+This script searches for and removes adapters using cutadapt - however the settings are changed a little and will differ from other commonly used setting in being a little less stringent. For example a single C at the end of a read will not be removed because that could deplete coverage. A strand placement bias filter can be used later to handle this. Note that perfect matches for the first 3 (CTG) or 4 (CTGT) bases of the adapter occur in 132 and 25 places in the genome, respectively. For this analysis, please see the adapter_search/ folder of this repository.
+
+Now follows a description of the rationale for using cutadapt as opposed to other programs. The following programs were considered:
 * [Sickle](https://github.com/najoshi/sickle)
 * [Cutadapt](https://github.com/marcelm/cutadapt)
 * [TrimGalore](https://github.com/FelixKrueger/TrimGalore)
 * [Trimmomatic](http://www.usadellab.org/cms/index.php?page=trimmomatic)
 
-I previously used sickle, but the repo doesn't appear to have recent updates. TrimGalore is a Java wrapper script (for FastQC and cutadapt) and is in version 0.n. As discussed below some of the settings are a little stringent and it seems better to work directly with cutadapt to keep a simple and transparent workflow. I have not tried trimmomatic in detail yet.
+I previously used sickle, but at the time of writing the repo doesn't appear to have recent updates. TrimGalore is a Java wrapper script (for FastQC and cutadapt) and is in version 0.n. As discussed below some of the settings are a little stringent and it seems better to work directly with cutadapt to keep a simple and transparent workflow. I have not tried trimmomatic in detail yet.
 
 References:
 * [Cutadapt manual](http://manpages.ubuntu.com/manpages/xenial/man1/cutadapt.1.html)
@@ -80,7 +88,7 @@ Multiplication | Equals | Rounded down
 0.2*5 | 1.0 | 1
 0.2*4 | 0.8 | 0
 
-This allows a maximum of 2 mismatches (for >=10 adapter nts). This goes down to 1 mismatch (5-9 nts) and 0 mismatches (<=4 nts). If a read ends with the bases CTG exactly, they will be removed.
+This allows a maximum of 2 mismatches (for >=10 adapter nts). This goes down to 1 mismatch (5-9 nts) and 0 mismatches (3-4 nts). If a read ends with the bases CTG exactly, they will be removed.
 
 ### Discarding Ns and rejecting reads1
 ```
@@ -95,35 +103,40 @@ FASTQ/${fwdrds} FASTQ/${rvsrds}
 ```
 The paired end outputs are specified with ```-o``` and ```-p``` and written to the TRIM directory while forward and reverse input files are separate (not interleaved) and obtained from the FASTQ directory.
 
-## Notes on 2_subtract_spike.sh
+## Notes on Script 2 (2_subtract_spike.sh)
 The second script maps against the spike-in in four steps:
 1. map trimmed reads against spike-in and store mapped as BAM
 2. also selects unmapped reads and converts back to FASTQ (discarding singletons)
 3. map trimmed reads against "resected" spike-in and store mapped reads
-4. map unmapped reads from #2 against "resected" spike-in, select unmapped reads again and convert -> unmapped FASTQ
+4. map unmapped reads from step 2 against "resected" spike-in, select unmapped reads again and convert -> unmapped FASTQ
+
+The effect of these steps is to generate coverage graphs for the spike-in (outstanding) and to subtract all reads that plausibly map to the spike-in (as well as their paired reads) from samples.
 
 ## Notes on 3_map_reference.sh
-The third script maps the unmapped FASTQ against reference which includes bacterium and phiX174
+The third script maps the unmapped FASTQ against reference which includes bacterium and ΦX174
 1. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_ (using ref_decoder.csv)
 2. maps against reference, filters Q20 (should exclude multi-mappers?) and stores mapped reads as indexed BAM
-3. subsets output of 2 for phiX and indexes
-4. maps also against reference with resected phiX
-5. subsets output of 4 for phiX and indexes
+3. subsets output of step 2 for the ΦX174 reference and indexes
+4. maps also against reference with resected ΦX
+5. subsets output of step 4 for the ΦX174 reference and indexes
+
+BAM files generated here may be inspected. Coverage of bacterial chromosome, plasmid (if present) and phage can be examined using IGV.
 
 ## Notes on 4_call_snps.sh
 The fourth script calls SNPs (currently simple SNPs only) and uses a series of python scripts to consolidate them:
-1. uses FreeBayes in naive mode to process phiX-filtered BAM -> unfiltered VCF (e.g. A_phix_1.vcf)
-2. the same with resected BAM -> unfiltered VCF (e.g. A_phix_2.vcf)
+1. uses FreeBayes in naïve mode to process ΦX174-subsetted BAM -> unfiltered VCF (e.g. A_phix_1.vcf)
+2. FreeBayes is used again with the resected BAM -> unfiltered VCF (e.g. A_phix_2.vcf)
 3. renumber the resected VCF: calls 2_recount_resected.py on (e.g.) A_phix_2.vcf to create (e.g.) A_phix_2_reindexed.vcf
 4. merge two VCFs accounting for all variants and choosing greater coverage: calls 3_fuse_vcfs.py on (e.g.) A_phix_1.vcf and A_phix_2_reindexed.vcf to create (e.g.) A_phix_merged.vcf
-5. apply bias filters using vcffilter
-6. apply vcf_parser.py script to tabulate by genome position giving details of protein changes.
+5. apply vcf_parser.py script to (e.g.) A_phix_merged.vcf to tabulate by genome position with details of protein changes (to give, e.g., A_phix_unfiltered_table.tsv)
+6. apply bias filters using vcffilter to (e.g.) A_phix_merged.vcf
+7. apply vcf_parser.py script to output of step 6 also (to give, e.g., A_phix_filtered_table.tsv)
 
-### Further Notes
-Idiot check on step 3 above - check that identified sites are identical (may be some uniques at edge of genome - handled in step 4).
+### To Do / Notes
+* I carried out an idiot check on step 3 to see that positions in the 1 and 2 VCF are the same, not shifted (may be some uniques at edge of genome - handled in step 4). More checking may be advisable.
+* I am a little uncertain of the validity of the filters applied in step 6. Are they too strict? See below.
 
-Let's explore the freebayes command line options:
-
+### Dissection of freebayes command line
 The following is used to refer to the reference genome (either regular or resected):
 ```
 --fasta-reference
@@ -149,7 +162,7 @@ Exclude indels, multi-nucleotide events (must try without this) and complex even
 --no-indels --no-mnps --no-complex
 ```
 
-Now the filter steps:
+### Dissection of vcffilter command line
 Using [vcffilter](https://github.com/vcflib/vcflib#vcffilter):
 ```
 vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30"
@@ -159,19 +172,18 @@ EPP: placement bias
 QUAL: variant quality
 DP: depth of coverage
 
-Maybe we can stick to QUAL and DP as FreeBayes incorporates info about biases into it's calling algorithm...
+Maybe we can stick to EPP, QUAL and DP as, according to [this comment](https://github.com/ekg/freebayes/issues/5#issuecomment-13016612), FreeBayes incorporates information about biases into its calling algorithm.
 
-## Next steps (for Oye's pipeline)
+## Next steps (for Host Switching pipeline)
 1. Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in FreeBayes in order to restore alleles skipped in some samples.
-2. select UNION of all positive sites in filtered VCFs
-3. examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
+2. Select UNION of all positive sites in filtered VCFs
+3. Examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
 
-## For Alex's pipeline
-1. I think #1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
-2. adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division
-3. apply the same workflow exactly as Oye's pipeline (#1-5), viz. re-index and splice VCFs, apply filters, and step back to the unfiltered VCFs.
-c
-## Setup so far
+## Next steps (for Mutation Rate pipeline)
+1. Steps 1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
+2. Adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division
+
+## Virtual Machine Setup
 I am separate VMs (B'ham for Oye, W'wick for Alex) for these pipelines which are pulling from my git repo to fetch scripts and references. The environment (meaning all software used) is defined by a conda YAML file. Data is already copied to drives. I've tested so far using Oye's VM running for two samples only.
 
 ## URL Dump
