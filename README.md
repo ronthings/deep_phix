@@ -170,7 +170,7 @@ Maybe we can stick to QUAL and DP as FreeBayes incorporates info about biases in
 1. I think #1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
 2. adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division
 3. apply the same workflow exactly as Oye's pipeline (#1-5), viz. re-index and splice VCFs, apply filters, and step back to the unfiltered VCFs.
-
+c
 ## Setup so far
 I am separate VMs (B'ham for Oye, W'wick for Alex) for these pipelines which are pulling from my git repo to fetch scripts and references. The environment (meaning all software used) is defined by a conda YAML file. Data is already copied to drives. I've tested so far using Oye's VM running for two samples only.
 
