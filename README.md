@@ -1,10 +1,10 @@
 # ΦX174 Deep Sequencing Analysis Pipeline
 This repository contains scripts written by Ben Dickins and used to analyse deep sequencing results from the following work conducted in the Dickins laboratory:
 
-Abbreviated Title | Working Title of Manuscript | First Author
-------------------|-----------------------------|-------------
-Elevated Mutation Rate Study | The effects of elevated mutation rate on evolutionary dynamics in a ssDNA phage | Alex Wilcox
-Host Switch Study | Signatures of adaptation to host switching in bacteriophage ΦX174 | Oyeronke Ayansola
+Abbreviated Title | Working Title of Manuscript | First Author | Key Issues for Analysis
+------------------|-----------------------------|--------------|------------------------
+Elevated Mutation Rate Study | The effects of elevated mutation rate on evolutionary dynamics in a ssDNA phage | Alex Wilcox | overlapping read pairs, mapping over the origin
+Host Switch Study | Signatures of adaptation to host switching in bacteriophage ΦX174 | Oyeronke Ayansola | subtraction of spike-in from alternate samples, mapping over the origin
 
 ## Summary
 Here is a brief overview of the key scripts (in the bash_scripts/ folder) that define this pipeline:
