@@ -1,6 +1,9 @@
 # Deep sequencing analysis scripts for ΦX174 analysis
 
-This repository contains scripts used to analyse deep sequencing results from recent experiments in our lab.
+This repository contains scripts used to analyse deep sequencing results from the following experiments in our lab:
+
+* The effects of elevated mutation rate on evolutionary dynamics in a ssDNA phage (aka Elevated Mutation Rate Study)
+* Signatures of adaptation to host switching in bacteriophage ΦX174 (aka Host Switch Study)
 
 ## Summary
 Script Name | Purpose
@@ -32,12 +35,12 @@ You can copy this exact environment using the YAML file in this repo as follows:
 conda env create -f environment.yml
 ```
 
-## Notes on Script 0 (0_config_and_run.sh)
+## Notes on Control Script (0_config_and_run.sh)
 This script sets some global variables.
 
 It calculates NUMCPUS = the number of CPUs on the system. This is currently set for Ubuntu, but you swap comment to activate for MacOS. Other variables include the locations of key FASTA and FASTQ files. Please check these carefully before running. The FASTA files are currently contained in this repository, but the FASTQ files will be elsewhere. The FASTA files are then indexed (only needs to happen once) and scripts 1 to 4 are executed (inheriting the variables set here).
 
-## Notes on Script 1 (1_filter_reads.sh)
+## Notes on Trimming Script (1_filter_reads.sh)
 This script searches for and removes adapters using cutadapt - however the settings are changed a little and will differ from other commonly used setting in being a little less stringent. For example a single C at the end of a read will not be removed because that could deplete coverage. A strand placement bias filter can be used later to handle this. Note that perfect matches for the first 3 (CTG) or 4 (CTGT) bases of the adapter occur in 132 and 25 places in the genome, respectively. For this analysis, please see the adapter_search/ folder of this repository.
 
 Now follows a description of the rationale for using cutadapt as opposed to other programs. The following programs were considered:
@@ -103,7 +106,7 @@ FASTQ/${fwdrds} FASTQ/${rvsrds}
 ```
 The paired end outputs are specified with ```-o``` and ```-p``` and written to the TRIM directory while forward and reverse input files are separate (not interleaved) and obtained from the FASTQ directory.
 
-## Notes on Script 2 (2_subtract_spike.sh)
+## Notes on Spike-in Subtraction Script (2_subtract_spike.sh)
 The second script maps against the spike-in in four steps:
 1. map trimmed reads against spike-in and store mapped as BAM
 2. also selects unmapped reads and converts back to FASTQ (discarding singletons)
@@ -112,7 +115,7 @@ The second script maps against the spike-in in four steps:
 
 The effect of these steps is to generate coverage graphs for the spike-in (outstanding) and to subtract all reads that plausibly map to the spike-in (as well as their paired reads) from samples.
 
-## Notes on 3_map_reference.sh
+## Notes on Reference Mapping Script (3_map_reference.sh)
 The third script maps the unmapped FASTQ against reference which includes bacterium and ΦX174
 1. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_ (using ref_decoder.csv)
 2. maps against reference, filters Q20 (should exclude multi-mappers?) and stores mapped reads as indexed BAM
@@ -122,7 +125,7 @@ The third script maps the unmapped FASTQ against reference which includes bacter
 
 BAM files generated here may be inspected. Coverage of bacterial chromosome, plasmid (if present) and phage can be examined using IGV.
 
-## Notes on 4_call_snps.sh
+## Notes on SNP Calling and Filtering Script (4_call_snps.sh)
 The fourth script calls SNPs (currently simple SNPs only) and uses a series of python scripts to consolidate them:
 1. uses FreeBayes in naïve mode to process ΦX174-subsetted BAM -> unfiltered VCF (e.g. A_phix_1.vcf)
 2. FreeBayes is used again with the resected BAM -> unfiltered VCF (e.g. A_phix_2.vcf)
@@ -174,12 +177,12 @@ DP: depth of coverage
 
 Maybe we can stick to EPP, QUAL and DP as, according to [this comment](https://github.com/ekg/freebayes/issues/5#issuecomment-13016612), FreeBayes incorporates information about biases into its calling algorithm.
 
-## Next steps (for Host Switching pipeline)
+## Next steps (for Host Switching Study)
 1. Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in FreeBayes in order to restore alleles skipped in some samples.
 2. Select UNION of all positive sites in filtered VCFs
 3. Examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
 
-## Next steps (for Mutation Rate pipeline)
+## Next steps (for Elevated Mutation Rate Study)
 1. Steps 1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
 2. Adjust step 3 of the existing pipeline to map (PEAR output) in singleton mode but keep resecting division
 
