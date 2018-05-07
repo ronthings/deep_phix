@@ -15,10 +15,11 @@ for d in "MAP" "SPK" "TMP" "TRIM" "UMP" "VCF"; do
 done
 
 ## locations of key files
-# FASTA: file containing reference genomes (incl. ref_decoder.csv)
-# FASTQ: file containing FASTQ reads
+# data storage directory
 BASEDIR="/media/deepdata/HostSwitch"
+# FASTA: contains reference genomes and ref_decoder.csv (this repo)
 FASTALOC="FASTA"
+# FASTQ: contains FASTQ reads (inside data storage)
 FASTQLOC="${BASEDIR}/FASTQ"
 
 ## index genome files

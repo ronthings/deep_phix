@@ -5,7 +5,7 @@ usage() {
   cat <<EOF
 Usage:
   ${NAME}
-It is important that you run "2_subtract_spike.sh" first!
+It is important that you run "3_map_reference.sh" first!
 
 EOF
 }
@@ -64,6 +64,7 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # create table with genome-level data (based on phix_coord)
   echo "*" | python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_filtered.vcf VCF/${id}_phix_filtered_table.tsv
+  echo
 
 done
 

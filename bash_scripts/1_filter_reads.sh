@@ -5,7 +5,7 @@ usage() {
   cat <<EOF
 Usage:
   ${NAME}
-It is important that you run "0_config_file.sh" first!
+You must define global variables first (via "0_config_and_run.sh")
 
 EOF
 }
