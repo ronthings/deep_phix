@@ -25,3 +25,5 @@ if __name__ == "__main__":
             rec.pos -= glen # so 5387 becomes 1
         vcf_out.write(rec)
         #print(rec, file=vcf_out)
+    vcf_in.close()
+    vcf_out.close()

@@ -44,3 +44,6 @@ if __name__ == "__main__":
             vcf_out.write(recy)
         else:
             vcf_out.write(recx)
+    vcf_primary.close()
+    vcf_secondary.close()
+    vcf_out.close()

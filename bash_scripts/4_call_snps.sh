@@ -1,34 +1,66 @@
-## Procedure
-# Now let's make the directory for VCF files to go in
-# mkdir VCF
+#!/usr/bin/env bash
 
-# Now the key FreeBayes command:
-freebayes --fasta-reference FASTA/reference.fasta --pooled-continuous \
---min-alternate-fraction 0.01 --min-alternate-count 1 \
---min-mapping-quality 20 --min-base-quality 30 \
---no-indels --no-mnps --no-complex MAP/A_phixmapped.bam > VCF/A_phix.vcf
+usage() {
+  NAME=$(basename $0)
+  cat <<EOF
+Usage:
+  ${NAME}
+It is important that you run "2_subtract_spike.sh" first!
 
-# I notice that FreeBayes itself left aligns indels by default.
-# Why do some folks use pooled discrete with ploidy=1 ?
+EOF
+}
 
-# Now it's time to filter the FreeBayes output (better to do this as a discrete step and we can use a program from vcflib):
-# conda install vcflib # if not already installed
-vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30" VCF/A_phix.vcf > VCF/A_phix_filtered.vcf
+# load config script
+source ./0_config_file.sh
 
-# This filter is quite stringent. For example 1460 was rejected for placement bias but it looks pretty solid on IGV.
-# Paradoxically, the false negative rate may be increased by high coverage...
+# location for log file
+LOGFILE=./4_call.log
 
-# Time to tabulate our data so it is human-readable.
-# Here's a simple approach (again using a vcflib program):
-vcf2tsv VCF/A_phix.vcf > VCF/A_phix.tsv
+# variables to be used in main loop
+reads1=(MAP/*_phixmapped_1.bam) # collect each forward read in array, e.g. "MAP/A_phixmapped_1.bam"
+reads1=("${reads1[@]##*/}") # [@] refers to array, greedy remove */ from left, e.g. "A_phixmapped_1.bam"
+reads2=("${reads1[@]/_1/_2}") # substitute R2 for R1, e.g. "A_phixmapped_2.bam"
 
-# You can render the output file off-the-bat in Excel or in Atom if you have this excellent package installed:
-https://atom.io/packages/tablr
+# main loop
+pipeline() {
 
-# For a table with genome-context and biological effect, we can use my vcf-codon-table script from GitHub.
-# Pre-requisites:
-## We need to be in an environment with python3 (maybe move to your root conda environment).
-## We need to put the phix_coord.txt information into the FASTA/ reference folder.
+echo [`date +"%Y-%m-%d %H:%M:%S"`] "#> START: " $0 $@
 
-# Now we are ready:
-./vcf_parser.py FASTA/phix_AF176034.fasta FASTA/phix_coord.txt VCF/A_phix.vcf VCF/A_table.tsv
+for ((i=0; i<=${#reads1[@]}-1; i++)); do
+  fwdrds="${reads1[$i]}" # e.g. "A_phixmapped_1.bam"
+  rvsrds="${reads2[$i]}" # e.g. "A_phixmapped_2.bam"
+  id="${fwdrds%%_*}" # greedy remove _* from right e.g. "A"
+
+  # choose a reference genome
+  echo ${id} processing...
+  #ref=$(
+  #awk -F"," -v id=$id '$1 == id { print $3 }' ${FASTALOC}/ref_decoder.csv
+  #)
+  #echo ${ref} selected as reference
+  ref=id
+
+  ## PILEUP AGAINST MAIN GENOME
+  # naive variant call - should try version preserving indels
+  freebayes --fasta-reference ${FASTALOC}/${ref}.fasta --pooled-continuous \
+  --min-alternate-fraction 0.01 --min-alternate-count 1 \
+  --min-mapping-quality 20 --min-base-quality 30 \
+  --no-indels --no-mnps --no-complex MAP/${id}_phixmapped_1.bam > VCF/${id}_phix_1.vcf
+
+  ## PILEUP AGAINST RESECTED GENOME
+  # naive variant call
+  freebayes --fasta-reference ${FASTALOC}/${ref}_resected.fasta --pooled-continuous \
+  --min-alternate-fraction 0.01 --min-alternate-count 1 \
+  --min-mapping-quality 20 --min-base-quality 30 \
+  --no-indels --no-mnps --no-complex MAP/${id}_phixmapped_2.bam > VCF/${id}_phix_2.vcf
+
+  # recount the positions in the resected VCF file
+  python python_scripts/2_recount_resected.py VCF/${id}_phix_2.vcf # will create ${id}_phix_2_reindexed.vcf
+
+  # merge VCFs and select data with highest coverage
+  python python_scripts/3_fuse_vcfs.py VCF/${id}_phix_1.vcf # will create ${id}_phix_merged.vcf
+
+  # filter against various biases using vcflib's vcffilter
+  vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30" VCF/${id}_phix_merged.vcf > VCF/${id}_phix_filtered.vcf
+
+  # Now we are ready:
+  python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_filtered.vcf VCF/${id}_phix_table.tsv

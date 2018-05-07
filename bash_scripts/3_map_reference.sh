@@ -14,10 +14,10 @@ EOF
 source ./0_config_file.sh
 
 # location for log file
-LOGFILE=./map.log
+LOGFILE=./3_map.log
 
 # variables to be used in main loop
-reads1=(UMP/*_unmapped_R1.fastq.gz) # collect each forward read in array, e.g. "TRIM/A_unmapped_R1.fastq.gz"
+reads1=(UMP/*_unmapped_R1.fastq.gz) # collect each forward read in array, e.g. "UMP/A_unmapped_R1.fastq.gz"
 reads1=("${reads1[@]##*/}") # [@] refers to array, greedy remove */ from left, e.g. "A_unmapped_R1.fastq.gz"
 reads2=("${reads1[@]/_R1/_R2}") # substitute R2 for R1, e.g. "A_unmapped_R2.fastq.gz"
 
@@ -54,12 +54,6 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   samtools view -b MAP/${id}_refmapped_1.bam AF176034.1 -o MAP/${id}_phixmapped_1.bam
   samtools index MAP/${id}_phixmapped_1.bam
 
-  # naive variant call - should try version preserving indels
-  freebayes --fasta-reference ${FASTALOC}/${ref}.fasta --pooled-continuous \
-  --min-alternate-fraction 0.01 --min-alternate-count 1 \
-  --min-mapping-quality 20 --min-base-quality 30 \
-  --no-indels --no-mnps --no-complex MAP/${id}_phixmapped_1.bam > VCF/${id}_phix_1.vcf
-
   ## MAP TO RESECTED GENOME
   # map (unmapped) reads against (concatenated) host and RESECTED phix genomes
   bwa mem -t ${NUMCPUS} -R '@RG\tID:HSTSWTCH\tSM:'"$id" ${FASTALOC}/${ref}_resected.fasta UMP/${fwdrds} UMP/${rvsrds} > TMP/${id}_refmapped_2.sam
@@ -75,12 +69,6 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
   samtools view -b TMP/${id}_refmapped_2.bam RESTART_2694_RESECTED_AF176034.1 -o MAP/${id}_phixmapped_2.bam
   samtools index MAP/${id}_phixmapped_2.bam
   rm TMP/${id}_refmapped_*.* # remove BAM
-
-  # naive variant call
-  freebayes --fasta-reference ${FASTALOC}/${ref}_resected.fasta --pooled-continuous \
-  --min-alternate-fraction 0.01 --min-alternate-count 1 \
-  --min-mapping-quality 20 --min-base-quality 30 \
-  --no-indels --no-mnps --no-complex MAP/${id}_phixmapped_2.bam > VCF/${id}_phix_2.vcf
 
 done
 

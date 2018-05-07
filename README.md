@@ -105,10 +105,22 @@ The second script maps against the spike-in in four steps:
 ## Notes on 3_map_reference.sh
 The third script maps the unmapped FASTQ against reference which includes bacterium and phiX174
 1. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_ (using ref_decoder.csv)
-2. maps against reference and stores mapped reads as indexed BAM (also subsets for phiX)
-3. subsets output of b for phiX and uses FreeBayes in naive mode to create -> unfiltered VCF
+2. maps against reference, filters Q20 (should exclude multi-mappers?) and stores mapped reads as indexed BAM
+3. subsets output of 2 for phiX and indexes
 4. maps also against reference with resected phiX
-5. stores only the phiX subset from this and uses FreeBayes as above to create -> unfiltered VCF (resected)
+5. subsets output of 4 for phiX and indexes
+
+## Notes on 4_call_snps.sh
+The fourth script calls SNPs (currently simple SNPs only) and uses a series of python scripts to consolidate them:
+1. uses FreeBayes in naive mode to process phiX-filtered BAM -> unfiltered VCF (e.g. A_phix_1.vcf)
+2. the same with resected BAM -> unfiltered VCF (e.g. A_phix_2.vcf)
+3. renumber the resected VCF: calls 2_recount_resected.py on (e.g.) A_phix_2.vcf to create (e.g.) A_phix_2_reindexed.vcf
+4. merge two VCFs accounting for all variants and choosing greater coverage: calls 3_fuse_vcfs.py on (e.g.) A_phix_1.vcf and A_phix_2_reindexed.vcf to create (e.g.) A_phix_merged.vcf
+5. apply bias filters using vcffilter
+6. apply vcf_parser.py script to tabulate by genome position giving details of protein changes.
+
+### Further Notes
+Idiot check on step 3 above - check that identified sites are identical (may be some uniques at edge of genome - handled in step 4).
 
 Let's explore the freebayes command line options:
 
@@ -137,24 +149,22 @@ Exclude indels, multi-nucleotide events (must try without this) and complex even
 --no-indels --no-mnps --no-complex
 ```
 
-Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in order to restore alleles skipped in some samples.
+Now the filter steps:
+Using [vcffilter](https://github.com/vcflib/vcflib#vcffilter):
+```
+vcffilter -f "SRP > 20" -f "SAP > 20" -f "EPP > 20" -f "QUAL > 30" -f "DP > 30"
+```
+SRP and SAP: strand biases
+EPP: placement bias
+QUAL: variant quality
+DP: depth of coverage
 
-## Now added (in python_scripts folder)!
-Now added:
-* 2_recount_resected.py: re-writes VCF file coordinates - to be used of SAMPLE_phix_2.vcf (idiot check - sites identical with SAMPLE_phix_1.vcf)
-* 3_fuse_vcfs.py: merges vcfs - to be used on SAMPLE_phix_1.vcf (and will find reindexed version from above) - adds sites that are missing in original file and if both files have a site, chooses the entry with greater coverage. Interestingly pysam appears to re-label reference depending on header.
-
-See pipeline.txt in the folder to see sample usage (room for improvement in labelling).
-
-## Notes on 4_call_snps.sh
-This script is incomplete but contains command line for VCFfilter from vcflib, for creating filtered VCFs.
+Maybe we can stick to QUAL and DP as FreeBayes incorporates info about biases into it's calling algorithm...
 
 ## Next steps (for Oye's pipeline)
-1. re-index the resected VCFs -- DONE
-2. splice from them to repair the ends of the main VCFs -- DONE - but just looked for greater coverage
-3. apply vcffilter to create -> filtered VCFs
-4. select UNION of all positive sites in filtered VCFs
-5. examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
+1. Consider -@ (--variant-input) and -l (--only-use-input-alleles) options in FreeBayes in order to restore alleles skipped in some samples.
+2. select UNION of all positive sites in filtered VCFs
+3. examine UNION list in original, unfiltered VCFs (to avoid false negatives) -- will need to re-run 3_map_reference.sh with -@ option
 
 ## For Alex's pipeline
 1. I think #1 and 2 in the existing pipeline can be discarded because they are handled by PEAR (read merge)
