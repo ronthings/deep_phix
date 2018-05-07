@@ -10,9 +10,6 @@ It is important that you run "2_subtract_spike.sh" first!
 EOF
 }
 
-# load config script
-source bash_scripts/0_config_file.sh
-
 # location for log file
 LOGFILE=./4_call.log
 
