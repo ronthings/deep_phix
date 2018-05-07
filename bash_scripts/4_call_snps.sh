@@ -64,3 +64,10 @@ for ((i=0; i<=${#reads1[@]}-1; i++)); do
 
   # create table with genome-level data (based on phix_coord)
   python vcf-codon-table/vcf_parser.py ${FASTALOC}/${ref}.fasta vcf-codon-table/phix_coord.txt VCF/${id}_phix_filtered.vcf VCF/${id}_phix_table.tsv
+  
+done
+
+echo [`date +"%Y-%m-%d %H:%M:%S"`] "#> DONE."
+} #pipeline end
+
+pipeline 2>&1 | tee $LOGFILE
