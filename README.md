@@ -126,7 +126,7 @@ The third script maps the unmapped FASTQ against reference which includes bacter
 1. it starts by identifying whether the sample was sequenced in _Salmonella_ or _Escherichia_ (using ref_decoder.csv)
 2. maps against reference, filters Q20 (should exclude multi-mappers?) and stores mapped reads as indexed BAM
 3. subsets output of step 2 for the ΦX174 reference and indexes
-4. maps also against reference with resected ΦX
+4. maps also against reference with resected ΦX174
 5. subsets output of step 4 for the ΦX174 reference and indexes
 
 BAM files generated here may be inspected. Coverage of bacterial chromosome, plasmid (if present) and phage can be examined using IGV.
