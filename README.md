@@ -1,4 +1,4 @@
-# ΦX174 Deep Sequencing Analysis Pipeline
+# The ΦX174 Deep Sequencing Analysis Pipeline
 This repository contains scripts written by Ben Dickins (with command-line and workflow level inputs from co-authors) and used to analyse deep sequencing results from the following studies conducted in the Dickins laboratory:
 
 Short Title | Working Title of Manuscript | First Author | Key Issues for Analysis
